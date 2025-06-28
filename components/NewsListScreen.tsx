@@ -99,7 +99,7 @@ const NewsListScreen: React.FC = () => {
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.container} className="container" testID="container">
             <Text style={styles.header} className="header" testID="header">Dernières nouvelles</Text>
-            <View className="list-wrapper" testID="list-wrapper" style={{ height: CARD_HEIGHT }}>
+            <View className="list-wrapper" testID="list-wrapper" style={{ height: '100%' }}>
               <FlatList
                 className="news-list"
                 testID="news-list"
