@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, Pressable, Linking, Platform } from 'react-native';
+import { View, Text, Image, StyleSheet, Pressable, Linking, Platform, ImageBackground } from 'react-native';
+import { BlurView } from 'expo-blur';
 
 export interface Article {
   pubDate?: string;
@@ -42,71 +43,113 @@ const NewsCard: React.FC<NewsCardProps> = ({
     }
   };
 
+  const CardContainer = imageUrl ? ImageBackground : View;
+  const cardContainerProps = imageUrl
+    ? {
+        source: { uri: imageUrl },
+        style: [styles.card, styles.cardWithImage],
+        imageStyle: styles.cardImageBackground,
+        testID: 'card',
+      }
+    : { style: styles.card, testID: 'card' };
+
   return (
-    <View style={styles.card}>
-      {/* Image and Image Credit Section (now at the top) */}
-      {imageUrl && ( // Only render if an image URL exists
-        <View style={styles.topImageSection}>
-          <View style={styles.imageWrapper}>
-            <Image
-              source={{ uri: imageUrl }}
-              style={styles.image}
-              resizeMode="cover"
-            />
+    <CardContainer {...cardContainerProps}>
+      {/* Content Section with Blur if imageUrl */}
+      {imageUrl ? (
+        <View style={styles.blurWrapper}>
+          <BlurView intensity={50} tint="dark" style={styles.blurContent}>
+            <View style={styles.content} className="content" testID="content">
+              <View style={styles.titleContainer} className="title-container" testID="title-container">
+                <Pressable onPress={handleLinkPress} className="link-pressable" testID="link-pressable">
+                  <Text style={styles.title} className="title" testID="title">{title}</Text>
+                </Pressable>
+              </View>
+              <Text style={styles.meta} className="meta" testID="meta">
+                {mainSource} — {publicationCount} publication{publicationCount > 1 ? 's en parlent' : ' en parle'} | {formatTime(earliestDate)}
+              </Text>
+              <Text style={styles.summary} className="summary" testID="summary">{summary}</Text>
+              {imageCredit && (
+                <Text style={styles.imageCredit} className="image-credit" testID="image-credit">
+                  {imageCredit}
+                </Text>
+              )}
+            </View>
+          </BlurView>
+        </View>
+      ) : (
+        <>
+          <View style={styles.content} className="content" testID="content">
+            <View style={styles.titleContainer} className="title-container" testID="title-container">
+              <Pressable onPress={handleLinkPress} className="link-pressable" testID="link-pressable">
+                <Text style={styles.title} className="title" testID="title">{title}</Text>
+              </Pressable>
+            </View>
+            <Text style={styles.meta} className="meta" testID="meta">
+              {mainSource} — {publicationCount} publication{publicationCount > 1 ? 's en parlent' : ' en parle'} | {formatTime(earliestDate)}
+            </Text>
+            <Text style={styles.summary} className="summary" testID="summary">{summary}</Text>
           </View>
-          {imageCredit && (
-            <Text style={styles.imageCredit}>{imageCredit}</Text>
-          )}
-        </View>
+          <View style={styles.noImagePlaceholder} className="no-image-placeholder" testID="no-image-placeholder">
+            <Text style={styles.noImageText} className="no-image-text" testID="no-image-text">📰</Text>
+          </View>
+        </>
       )}
-      {/* Fallback for no image, if you still want a placeholder */}
-      {!imageUrl && (
-        <View style={styles.noImagePlaceholder}>
-          <Text style={styles.noImageText}>📰</Text>
-        </View>
-      )}
-
-
-      {/* Content Section (title, meta, summary) */}
-      <View style={styles.content}>
-        <View style={styles.titleContainer}>
-          <Pressable onPress={handleLinkPress}>
-            <Text style={styles.title}>{title}</Text>
-          </Pressable>
-        </View>
-        <Text style={styles.meta}>
-          {mainSource} — {publicationCount} publication{publicationCount > 1 ? 's en parlent' : ' en parle'} | {formatTime(earliestDate)}
-        </Text>
-        <Text style={styles.summary}>{summary}</Text>
-      </View>
-    </View>
+    </CardContainer>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#000', // bg-black
-    borderRadius: 12, // rounded-xl
-    padding: 20, // p-5
-    marginHorizontal: 16, // Added horizontal margin for spacing
-    marginVertical: 8, // my-4 (half of 4 is 2, so 8 for top/bottom)
-    flexDirection: 'column', // Changed to column for image on top
-    alignItems: 'stretch', // Stretch to fill width
+    backgroundColor: '#000',
+    borderRadius: 12,
+    padding: 20,
+    marginVertical: 20,
+    flexDirection: 'column',
+    alignItems: 'stretch',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    elevation: 5, // shadow-md
+    elevation: 5,
+    minHeight: 600,
+    overflow: 'hidden',
+  },
+  cardWithImage: {
+    padding: 0,
+    justifyContent: 'flex-end',
+  },
+  cardImageBackground: {
+    resizeMode: 'cover',
+    borderRadius: 12,
+  },
+  blurWrapper: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 32,
+    marginBottom: 32,
+  },
+  blurContent: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    width: '92%',
+    alignSelf: 'center',
+    padding: 0,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    borderRadius: 12,
   },
   topImageSection: {
-    alignItems: 'center', // Center the image horizontally
-    marginBottom: 15, // Space between image and text content
+    alignItems: 'center',
+    marginBottom: 15,
   },
   imageWrapper: {
-    width: '100%', // Make image span full width of the card
-    height: 200, // Fixed height for a consistent look
-    backgroundColor: '#333', // bg-gray-800
-    borderRadius: 8, // rounded-lg
+    width: '100%',
+    height: 200,
+    backgroundColor: '#333',
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
@@ -117,7 +160,7 @@ const styles = StyleSheet.create({
   },
   noImagePlaceholder: {
     width: '100%',
-    height: 100, // Slightly smaller placeholder
+    height: 100,
     backgroundColor: '#333',
     borderRadius: 8,
     justifyContent: 'center',
@@ -131,13 +174,14 @@ const styles = StyleSheet.create({
   imageCredit: {
     fontSize: 10,
     color: '#888',
-    marginTop: 8, // Space between image and credit
+    marginTop: 8,
     fontStyle: 'italic',
     textAlign: 'center',
     width: '100%',
   },
   content: {
-    // No flex: 1 needed here as it's a column layout
+    zIndex: 2,
+    padding: 20,
   },
   titleContainer: {
     marginBottom: 4,

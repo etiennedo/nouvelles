@@ -5,8 +5,9 @@ import {
   FlatList,
   StyleSheet,
   ActivityIndicator,
-  SafeAreaView,
   Platform,
+  Dimensions,
+  SafeAreaView
 } from 'react-native';
 import NewsCard, { Article } from '../components/NewsCard';
 
@@ -17,11 +18,11 @@ import rawNewsData from '../assets/json/news_grouped.json';
 interface NewsGroup {
   title: string;
   summary: string;
-  image?: string; // Add the optional top-level image field
+  image?: string;
   articles: Article[];
 }
 
-// Utility functions (from previous example, remain the same)
+// Utility to find earliest article
 function getEarliestArticle(articles: Article[]): Article | undefined {
   return articles
     .filter(a => a.pubDate)
@@ -30,127 +31,97 @@ function getEarliestArticle(articles: Article[]): Article | undefined {
     .sort((a, b) => ((a as any).date - (b as any).date))[0];
 }
 
-function getImageInfoFromArticles( // Renamed to clarify its purpose
+// Utility to pick an image
+function getImageInfoFromArticles(
   articles: Article[],
   mainSource?: string
-): { imageCredit?: string; imageUrl: string | null; imageSource?: string } {
-  // Try to find an image from the main source first
+): { imageCredit?: string; imageUrl: string | null } {
   const prioritized = articles.find(a => a.image && a.source === mainSource);
-  if (prioritized) {
-    return {
-      imageCredit: `Image: ${prioritized.source}`,
-      imageUrl: prioritized.image ?? null,
-      imageSource: prioritized.source,
-    };
-  }
-  // Otherwise, fallback to any image
+  if (prioritized) return { imageCredit: `Image: ${prioritized.source}`, imageUrl: prioritized.image || null };
   const fallback = articles.find(a => a.image);
-  if (fallback) {
-    return {
-      imageCredit: `Image: ${fallback.source}`,
-      imageUrl: fallback.image ?? null,
-      imageSource: fallback.source,
-    };
-  }
-  return { imageCredit: undefined, imageUrl: null, imageSource: undefined };
+  if (fallback) return { imageCredit: `Image: ${fallback.source}`, imageUrl: fallback.image || null };
+  return { imageCredit: undefined, imageUrl: null };
 }
 
 const ITEMS_PER_LOAD = 10;
+const HEADER_SPACE = 100;
+const { height: windowHeight } = Dimensions.get('window');
+const CARD_HEIGHT = windowHeight;
 
 const NewsListScreen: React.FC = () => {
   const [news, setNews] = useState<NewsGroup[]>([]);
-  const [loadedCount, setLoadedCount] = useState(0);
+  const [loaded, setLoaded] = useState(0);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
-  const loadMoreNews = useCallback(() => {
+  const loadMore = useCallback(() => {
     if (loading || !hasMore) return;
-
     setLoading(true);
     setTimeout(() => {
-      const startIndex = loadedCount;
-      const endIndex = startIndex + ITEMS_PER_LOAD;
-      const nextNews = (rawNewsData as NewsGroup[]).slice(startIndex, endIndex);
-
-      setNews(prevNews => [...prevNews, ...nextNews]);
-      setLoadedCount(prevCount => prevCount + nextNews.length);
-      setHasMore(nextNews.length === ITEMS_PER_LOAD && endIndex < rawNewsData.length);
+      const next = (rawNewsData as NewsGroup[]).slice(loaded, loaded + ITEMS_PER_LOAD);
+      setNews(prev => [...prev, ...next]);
+      setLoaded(prev => prev + next.length);
+      setHasMore(next.length === ITEMS_PER_LOAD && loaded + ITEMS_PER_LOAD < rawNewsData.length);
       setLoading(false);
     }, Platform.OS === 'web' ? 0 : 500);
-  }, [loading, hasMore, loadedCount]);
+  }, [loading, hasMore, loaded]);
 
-  useEffect(() => {
-    loadMoreNews();
-  }, []);
-
-  const renderFooter = () => {
-    if (!loading) return null;
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007bff" />
-      </View>
-    );
-  };
+  useEffect(() => { loadMore(); }, []);
 
   const renderItem = ({ item }: { item: NewsGroup }) => {
     const earliest = getEarliestArticle(item.articles);
-
-    // --- MODIFICATION HERE ---
-    let finalImageUrl: string | null = null;
-    let finalImageCredit: string | undefined = undefined;
-
-    // 1. Prioritize the top-level group image
-    if (item.image) {
-      finalImageUrl = item.image;
-      // You might want a generic credit or 'Image: Group' if source isn't explicit
-      // For now, let's just not set credit if it's from the group, unless you add a group-level credit field.
-      // Or, you can try to derive a source from the first article if the group has an image.
-      const firstArticleWithImage = item.articles.find(a => a.image === item.image && a.source);
-      if (firstArticleWithImage) {
-        finalImageCredit = `Image: ${firstArticleWithImage.source}`;
-      } else if (item.articles[0]?.source) { // Fallback to first article's source if no specific image match
-        finalImageCredit = `Image: ${item.articles[0].source}`;
-      } else {
-        finalImageCredit = 'Image: Source multiple'; // Generic if no clear source for group image
-      }
-
-    } else {
-      // 2. Fallback to image from articles if no top-level group image
-      const { imageCredit, imageUrl } = getImageInfoFromArticles(item.articles, earliest?.source);
-      finalImageUrl = imageUrl;
-      finalImageCredit = imageCredit;
-    }
-    // --- END MODIFICATION ---
+    const { imageCredit, imageUrl } = item.image
+      ? { imageCredit: `Image: ${item.articles[0]?.source}`, imageUrl: item.image }
+      : getImageInfoFromArticles(item.articles, earliest?.source);
 
     return (
-      <NewsCard
-        title={item.title}
-        summary={item.summary}
-        earliestDate={earliest?.pubDate || ''}
-        publicationCount={item.articles.length}
-        mainSource={earliest?.source || ''}
-        mainSourceLink={earliest?.link || '#'}
-        imageCredit={finalImageCredit} // Use the final derived credit
-        imageUrl={finalImageUrl}     // Use the final derived URL
-      />
+      <View
+        className="card-wrapper"
+        style={styles.cardWrapper}
+        testID="card-wrapper"
+      >
+        <NewsCard
+          title={item.title}
+          summary={item.summary}
+          earliestDate={earliest?.pubDate || ''}
+          publicationCount={item.articles.length}
+          mainSource={earliest?.source || ''}
+          mainSourceLink={earliest?.link || '#'}
+          imageCredit={imageCredit}
+          imageUrl={imageUrl}
+        />
+      </View>
     );
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <Text style={styles.header}>Dernières nouvelles</Text>
-        <FlatList
-          data={news}
-          renderItem={renderItem}
-          keyExtractor={(item, index) => item.title + index}
-          contentContainerStyle={styles.listContentContainer}
-          onEndReached={loadMoreNews}
-          onEndReachedThreshold={0.5}
-          ListFooterComponent={renderFooter}
-        />
-      </View>
-    </SafeAreaView>
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.container} className="container" testID="container">
+            <Text style={styles.header} className="header" testID="header">Dernières nouvelles</Text>
+            <View className="list-wrapper" testID="list-wrapper" style={{ height: CARD_HEIGHT }}>
+              <FlatList
+                className="news-list"
+                testID="news-list"
+                style={{ height: CARD_HEIGHT }}
+                contentContainerStyle={{ flexGrow: 1 }}
+                data={news}
+                renderItem={renderItem}
+                keyExtractor={(item, idx) => item.title + idx}
+                getItemLayout={(_, index) => ({ length: CARD_HEIGHT, offset: CARD_HEIGHT * index, index })}
+                initialScrollIndex={0}
+                onEndReached={loadMore}
+                onEndReachedThreshold={0.5}
+                ListFooterComponent={loading ? <ActivityIndicator style={{ margin: 20 }} size="large" color="#007bff" /> : null}
+                pagingEnabled
+                snapToInterval={CARD_HEIGHT}
+                snapToAlignment="start"
+                decelerationRate="fast"
+                showsVerticalScrollIndicator={false}
+                initialNumToRender={ITEMS_PER_LOAD}
+              />
+            </View>
+          </View>
+        </SafeAreaView>
   );
 };
 
@@ -159,27 +130,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#242424',
   },
+  cardWrapper: {
+    height: CARD_HEIGHT,
+    justifyContent: 'center',
+    backgroundColor: '#242424',
+  },
   container: {
-    flex: 1,
     maxWidth: Platform.OS === 'web' ? 768 : '100%',
     alignSelf: 'center',
     width: '100%',
     paddingHorizontal: 16,
+    backgroundColor: '#242424',
   },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginVertical: 32,
-    color: '#fff',
-  },
-  listContentContainer: {
-    paddingBottom: 20,
-  },
-  loadingContainer: {
-    paddingVertical: 20,
-    alignItems: 'center',
-  },
+  header: { fontSize: 24, fontWeight: 'bold', textAlign: 'center', color: '#fff' },
 });
 
 export default NewsListScreen;
