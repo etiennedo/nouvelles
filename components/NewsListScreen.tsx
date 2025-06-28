@@ -46,7 +46,7 @@ function getImageInfoFromArticles(
 const ITEMS_PER_LOAD = 10;
 const HEADER_SPACE = 100;
 const { height: windowHeight } = Dimensions.get('window');
-const CARD_HEIGHT = windowHeight;
+const CARD_HEIGHT = windowHeight - HEADER_SPACE;
 
 const NewsListScreen: React.FC = () => {
   const [news, setNews] = useState<NewsGroup[]>([]);
@@ -67,6 +67,7 @@ const NewsListScreen: React.FC = () => {
   }, [loading, hasMore, loaded]);
 
   useEffect(() => { loadMore(); }, []);
+
 
   const renderItem = ({ item }: { item: NewsGroup }) => {
     const earliest = getEarliestArticle(item.articles);
@@ -102,8 +103,8 @@ const NewsListScreen: React.FC = () => {
               <FlatList
                 className="news-list"
                 testID="news-list"
-                style={{ height: CARD_HEIGHT }}
-                contentContainerStyle={{ flexGrow: 1 }}
+                style={{ height: CARD_HEIGHT, borderRadius: 12 }}
+                contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
                 data={news}
                 renderItem={renderItem}
                 keyExtractor={(item, idx) => item.title + idx}
@@ -113,9 +114,10 @@ const NewsListScreen: React.FC = () => {
                 onEndReachedThreshold={0.5}
                 ListFooterComponent={loading ? <ActivityIndicator style={{ margin: 20 }} size="large" color="#007bff" /> : null}
                 pagingEnabled
-                snapToInterval={CARD_HEIGHT}
+                snapToInterval={650}
                 snapToAlignment="start"
                 decelerationRate="fast"
+                disableIntervalMomentum={true}
                 showsVerticalScrollIndicator={false}
                 initialNumToRender={ITEMS_PER_LOAD}
               />
@@ -131,18 +133,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#242424',
   },
   cardWrapper: {
-    height: CARD_HEIGHT,
-    justifyContent: 'center',
+    height: 650,
+    justifyContent: 'flex-start',
     backgroundColor: '#242424',
+    maxWidth: 768,
   },
   container: {
-    maxWidth: Platform.OS === 'web' ? 768 : '100%',
+    maxWidth:'100%',
     alignSelf: 'center',
+    alignItems: 'center',
     width: '100%',
     paddingHorizontal: 16,
     backgroundColor: '#242424',
   },
-  header: { fontSize: 24, fontWeight: 'bold', textAlign: 'center', color: '#fff' },
+  header: { fontSize: 24, fontWeight: 'bold', textAlign: 'center', color: '#fff', marginVertical: 20 },
 });
 
 export default NewsListScreen;

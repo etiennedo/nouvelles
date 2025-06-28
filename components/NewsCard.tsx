@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
     borderRadius: 12,
     padding: 20,
-    marginVertical: 20,
+    marginBottom: 20,
     flexDirection: 'column',
     alignItems: 'stretch',
     shadowColor: '#000',
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-    minHeight: 600,
+    height: 600,
     overflow: 'hidden',
   },
   cardWithImage: {
