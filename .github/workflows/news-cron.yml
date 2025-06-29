@@ -1,0 +1,36 @@
+name: Fetch and Group News Hourly
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Runs every hour at minute 0
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  fetch_and_group_news:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: nouvelles
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Fetch News
+        run: node scripts/fetchNews.js
+
+      - name: Group News
+        run: node scripts/groupNews.js
+
+      - name: Export static web build (predeploy)
+        run: npm run predeploy
+
+      - name: Deploy to GitHub Pages
+        run: npm run deploy
