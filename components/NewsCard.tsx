@@ -61,19 +61,15 @@ const NewsCard: React.FC<NewsCardProps> = ({
           <BlurView intensity={50} tint="dark" style={styles.blurContent}>
             <View style={styles.content} className="content" testID="content">
               <View style={styles.titleContainer} className="title-container" testID="title-container">
-                <Pressable onPress={handleLinkPress} className="link-pressable" testID="link-pressable">
-                  <Text style={styles.title} className="title" testID="title">{title}</Text>
-                </Pressable>
+                <Text style={[styles.title, { color: '#fff' }]} className="title" testID="title">{title}</Text>
               </View>
               <Text style={styles.meta} className="meta" testID="meta">
-                {mainSource} — {publicationCount} publication{publicationCount > 1 ? 's en parlent' : ' en parle'} | {formatTime(earliestDate)}
+                {mainSource} — {publicationCount} publication{publicationCount > 1 ? 's en parlent' : ' en parle'} | {formatTime(earliestDate)}{imageCredit && (` — ${imageCredit}`)}
               </Text>
               <Text style={styles.summary} className="summary" testID="summary">{summary}</Text>
-              {imageCredit && (
-                <Text style={styles.imageCredit} className="image-credit" testID="image-credit">
-                  {imageCredit}
-                </Text>
-              )}
+              <Pressable style={styles.readButton} onPress={handleLinkPress} testID="read-article-button">
+                <Text style={styles.readButtonText}>Lire l'article</Text>
+              </Pressable>
             </View>
           </BlurView>
         </View>
@@ -81,14 +77,20 @@ const NewsCard: React.FC<NewsCardProps> = ({
         <>
           <View style={styles.content} className="content" testID="content">
             <View style={styles.titleContainer} className="title-container" testID="title-container">
-              <Pressable onPress={handleLinkPress} className="link-pressable" testID="link-pressable">
-                <Text style={styles.title} className="title" testID="title">{title}</Text>
-              </Pressable>
+              <Text style={[styles.title, { color: '#fff' }]} className="title" testID="title">{title}</Text>
             </View>
             <Text style={styles.meta} className="meta" testID="meta">
               {mainSource} — {publicationCount} publication{publicationCount > 1 ? 's en parlent' : ' en parle'} | {formatTime(earliestDate)}
             </Text>
             <Text style={styles.summary} className="summary" testID="summary">{summary}</Text>
+            <Pressable style={styles.readButton} onPress={handleLinkPress} testID="read-article-button">
+              <Text style={styles.readButtonText}>Lire l'article</Text>
+            </Pressable>
+            {imageCredit && (
+              <Text style={styles.imageCredit} className="image-credit" testID="image-credit">
+                {imageCredit}
+              </Text>
+            )}
           </View>
           <View style={styles.noImagePlaceholder} className="no-image-placeholder" testID="no-image-placeholder">
             <Text style={styles.noImageText} className="no-image-text" testID="no-image-text">📰</Text>
@@ -126,13 +128,11 @@ const styles = StyleSheet.create({
   blurWrapper: {
     width: '100%',
     alignItems: 'center',
-    marginTop: 32,
-    marginBottom: 32,
   },
   blurContent: {
-    borderRadius: 16,
+    borderRadius: 12,
     overflow: 'hidden',
-    width: '92%',
+    width: '100%',
     alignSelf: 'center',
     padding: 0,
   },
@@ -182,6 +182,7 @@ const styles = StyleSheet.create({
   content: {
     zIndex: 2,
     padding: 20,
+    backgroundColor: 'rgba(0,0,0,0.6)' 
   },
   titleContainer: {
     marginBottom: 4,
@@ -200,6 +201,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginTop: 8,
     color: '#fff',
+  },
+  readButton: {
+    marginTop: 20,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    alignSelf: 'stretch',
+  },
+  readButtonText: {
+    color: '#222',
+    fontWeight: 'bold',
+    fontSize: 16,
+    textAlign: 'center',
   },
 });
 

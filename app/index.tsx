@@ -6,7 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 export default function App() {
   return (
     <>
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#242424' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
         <NewsListScreen />
       </SafeAreaView>
     </>

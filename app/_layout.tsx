@@ -21,9 +21,9 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack screenOptions={{
         headerShown: false,
-        headerStyle: { backgroundColor: '#242424' },
+        headerStyle: { backgroundColor: '#000' },
         headerTintColor: '#fff',
-        contentStyle: { backgroundColor: '#242424' },
+        contentStyle: { backgroundColor: '#000' },
       }}>
       </Stack>
       <StatusBar style="light" />

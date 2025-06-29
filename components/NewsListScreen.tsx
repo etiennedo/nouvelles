@@ -130,12 +130,12 @@ const NewsListScreen: React.FC = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#242424',
+    backgroundColor: '#000',
   },
   cardWrapper: {
     height: 650,
     justifyContent: 'flex-start',
-    backgroundColor: '#242424',
+    backgroundColor: '#000',
     maxWidth: 768,
   },
   container: {
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     paddingHorizontal: 16,
-    backgroundColor: '#242424',
+    backgroundColor: '#000',
   },
   header: { fontSize: 24, fontWeight: 'bold', textAlign: 'center', color: '#fff', marginVertical: 20 },
 });
