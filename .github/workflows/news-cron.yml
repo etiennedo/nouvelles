@@ -8,9 +8,6 @@ on:
 jobs:
   fetch_and_group_news:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: nouvelles
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
