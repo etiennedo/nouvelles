@@ -29,5 +29,10 @@ jobs:
       - name: Export static web build (predeploy)
         run: npm run predeploy
 
+      - name: Set Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Deploy to GitHub Pages
         run: npm run deploy
