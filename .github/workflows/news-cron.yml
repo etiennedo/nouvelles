@@ -2,12 +2,18 @@ name: Fetch and Group News Hourly
 
 on:
   schedule:
-    - cron: '0 * * * *' # Runs every hour at minute 0
-  workflow_dispatch: # Allows manual triggering
+    - cron: '0 * * * *' # Every hour at minute 0
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write      # ✅ Required for GitHub Pages
+  id-token: write   # ✅ Required for GitHub Pages
 
 jobs:
-  fetch_and_group_news:
+  build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -29,11 +35,19 @@ jobs:
       - name: Export static web build (predeploy)
         run: npm run predeploy
 
-      - name: Set Git identity
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist  # ⬅️ or use `web-build` if you're using Expo's default
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
       - name: Deploy to GitHub Pages
-        run: npm run deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
